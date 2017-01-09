@@ -11,7 +11,11 @@ from matplotlib.ticker import FuncFormatter
 from plot_set import *
 import os
 
-os.chdir('/Users/hliu/Downloads/BBL_Salt_MakeUp/analysis/chemical_shift')
+HOME = os.environ['HOME']
+WORKDIR = HOME+os.sep+'Desktop'
+CS_PTH = 'BBL_Salt_MakeUp/analysis/chemical_shift'
+METHOD = 'ShiftX'
+os.chdir(os.sep.join([WORKDIR, CS_PTH, METHOD]))
 
 seq_3L = np.loadtxt('sequence_3L.dat', dtype=str)
 seq_L = np.loadtxt('sequence.dat', dtype=str)
@@ -29,6 +33,7 @@ class ChemicalShift:
                                 index=np.arange(1, num_res+1))
 
     def loadShift(self, shiftData):
+
         atom_types = ['H', 'HA', 'N', 'C', 'CA', 'CB']
         shift_values = {t: np.nanmean(shiftData[t], axis=0) for t in atom_types}
         shift_values.update({t+'_E': np.nanstd(shiftData[t], axis=0) for t in atom_types})
@@ -59,18 +64,32 @@ cs_4 = setData('4M low', '4M/chemicalShift.mat')
 cs_native = setData('Native', 'native_chemicalShift.mat')
 
 
-comp1 = cs_4
-comp2 = cs_6
+comp1 = cs_6
+comp2 = cs_native
 plt.scatter(comp1.plot['H'], comp1.plot['N'],
-            c='b', alpha=0.7, label=comp1.name, s=100)
+            c='b', alpha=0.5, label=comp1.name, s=100)
 plt.scatter(comp2.plot['H'], comp2.plot['N'],
-            c='r', alpha=0.7, label=comp2.name, s=100)
+            c='r', alpha=0.5, label=comp2.name, s=100)
 
 ax = plt.gca()
 ax.invert_yaxis()
 ax.invert_xaxis()
 
 plt.legend(frameon=False, loc=2)
+
+plotted_residue = [9, 17, 18, 20, 21, 24, 26, 30, 31, 34, 39, 40] # numbers are coming from and compatible with JBC
+
+for res in plotted_residue:
+    v1 = comp1.coor.ix[res+4].values
+    v2 = comp2.coor.ix[res+4].values
+    d = np.linalg.norm(v1-v2)
+    plt.plot([v1[0], v2[0]],
+             [v1[1], v2[1]],
+             c='k', alpha=0.5)
+    plt.text(v2[0], v2[1], comp1.seq['1L'][res+4]+str(res), fontsize=20)
+
+'''
+Draw lines for residues having large deviations
 
 for idx in comp1.coor.index:
     v1 = comp1.coor.ix[idx].values
@@ -81,6 +100,7 @@ for idx in comp1.coor.index:
                  [v1[1], v2[1]],
                  c='k', alpha=0.5)
         plt.text(v2[0], v2[1], comp1.seq['1L'][idx]+str(idx-4), fontsize=20)
+'''
 
 plt.xlabel(r'$^{1}$H Chemical Shift')
 plt.ylabel(r'$^{15}$N Chemical Shift')
