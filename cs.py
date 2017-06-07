@@ -45,17 +45,19 @@ class ChemicalShift:
     def setCoor(self, selected_atomTypes):
         self.coor = self.shift[selected_atomTypes]
 
-    def setPlot(self, getPlot):
-        self.plot = getPlot(self.coor)
+    def setPlot(self, plotted_idx=None):
+        if plotted_idx is None:
+            self.plot = self.coor
+        else:
+            self.plot = self.coor.ix[plotted_idx, :]
 
 plotted_idx = np.delete(np.arange(1, 46), 7)
-getPlot = lambda x: x.ix[plotted_idx, :]
 
 def setData(trjName, fPth):
     cs = ChemicalShift(trjName, seqs)
     cs.loadShift(sio.loadmat(fPth))
     cs.setCoor(selected_atomTypes)
-    cs.setPlot(getPlot)
+    cs.setPlot(plotted_idx)
     return cs
 
 selected_atomTypes = ['H', 'N']
